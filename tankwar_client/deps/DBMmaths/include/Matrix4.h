@@ -192,6 +192,9 @@ namespace Maths
 		void MoveForwards(const float a_f);
 		void MoveBackwards(const float a_f);
 
+		void SetPosition2D(const Vector2& a_v2Pos);
+		Vector2 GetPosition2D() const;
+
 		//\=========================================================================================== 
 		//\ Construct Camera View
 		//\===========================================================================================

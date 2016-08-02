@@ -6,10 +6,12 @@ class Actor : Maths::AABBCollider2D
 {
 	bool bIsAlive_;
 	int iSprite_ = -1;
-	Maths::Vector2 v2Velocity_;
+	float speed_;
+	const char* sFileName_;
 protected:
-	Maths::Matrix4 m4Sprite_;
+	float rotAmount_ = 0.0001f;
 public:
+	Maths::Matrix4 m4Sprite_;
 	Actor();
 	Actor(const Actor& a_actor);
 	Actor(const char* sSpriteName, const Maths::Vector2& a_v2Size, const Maths::Vector2& a_v2Pos, const UG::SColour& a_colour = UG::SColour(255, 255, 255, 255), const bool& a_CanCollide = false, const float& a_bearingRadians = 0.0f, const bool& a_isAlive = true, const int iLayer=0);
@@ -66,6 +68,10 @@ public:
 	//\=================================================================================
 	void SetSprite(const int a_spriteID);
 	int GetSprite()const;
+
+
+	void TurnLeft(const float f, const float a_fDeltaTime);
+	void TurnRight(const float f, const float a_fDeltaTime);
 };
 
 #endif //__ACTOR_H_

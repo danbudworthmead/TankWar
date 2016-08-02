@@ -22,6 +22,7 @@ Actor::Actor(const char * sSpriteName, const Maths::Vector2 & a_v2Size, const Ma
 	UG::SetSpriteLayer(iSprite_, iLayer);
 	//StartDrawing();
 	UG::GetSpriteMatrix(iSprite_, m4Sprite_.values_);
+	sFileName_ = sSpriteName;
 }
 
 Actor::~Actor()
@@ -77,7 +78,7 @@ void Actor::SetDir(const float a_fAngle)
 	Maths::Matrix4 rot = Maths::CreateRotationMatrix4AboutZ(a_fAngle);
 	//rot.SetT(m4Sprite_.GetT());
 	//m4Sprite_ = rot;
-	m4Sprite_ *= rot;
+	m4Sprite_ = rot * m4Sprite_;
 }
 
 void Actor::SetDir(const Maths::Vector2 a_v2)
@@ -95,6 +96,8 @@ Maths::Vector2 Actor::SetSize()
 void Actor::SetSize(const Maths::Vector2& a_v2Size)
 {
 	Maths::AABBCollider2D::SetSize(a_v2Size);
+	iSprite_ = UG::CreateSprite(sFileName_, a_v2Size.x, a_v2Size.y);
+	UG::SetSpriteMatrix(iSprite_, m4Sprite_.values_);
 }
 
 //\=================================================================================
@@ -115,12 +118,11 @@ void Actor::IsAlive(const bool& a_isAlive)
 //\=================================================================================
 float Actor::GetSpeed()
 {
-	return v2Velocity_.Magnitude();
+	return speed_;
 }
 void Actor::SetSpeed(const float& a_fSpeed)
 {
-	v2Velocity_.Normalise();
-	v2Velocity_ *= a_fSpeed;
+	speed_ = a_fSpeed;
 }
 
 
@@ -154,4 +156,13 @@ void Actor::SetSprite(const int a_spriteID)
 int Actor::GetSprite()const
 {
 	return iSprite_;
+}
+
+void Actor::TurnLeft(const float f, const float a_fDeltaTime)
+{
+	m4Sprite_.RotateAboutZ(f * a_fDeltaTime * rotAmount_);
+}
+void Actor::TurnRight(const float f, const float a_fDeltaTime)
+{
+	m4Sprite_.RotateAboutZ(-f * a_fDeltaTime * rotAmount_);
 }

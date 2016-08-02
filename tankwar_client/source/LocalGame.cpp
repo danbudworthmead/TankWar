@@ -5,6 +5,7 @@
 #include <iostream>
 int LocalGame::RunLocalGame()
 {
+	Maths::AABBCollisionManager2D::instance();
 	InitialiseGamepads();
 	//Start loop
 		//Start loop
@@ -192,6 +193,9 @@ int LocalGame::LoadLevel(std::string a_sLevelName)
 		int randSpawn = rand() % possiblePlayerSpawns.size();
 		pPlayers[i]->SetPos(possiblePlayerSpawns[randSpawn]);
 		possiblePlayerSpawns.erase(possiblePlayerSpawns.begin() + randSpawn);
+		pPlayers[i]->SetSize(tileSize);
+		pPlayers[i]->turret_->SetSize(tileSize * 1.4f);
+		pPlayers[i]->SetSpeed(tileSize.Magnitude() * 2.4f);
 	}
 
 	return 1;
@@ -212,7 +216,9 @@ int LocalGame::UpdateGame()
 		UG::ClearScreen();
 		float fDeltaTime = UG::GetDeltaTime();
 		for (unsigned int i = 0; i < numberOfConnectedGamepads; i++)
-			pPlayers[i]->Update(fDeltaTime);
+			pPlayers[i]->Update(fDeltaTime, *pXboxControllers[i]);
+
+		Maths::AABBCollisionManager2D::instance()->UpdatePhysics();
 	} while (UG::Process());
 	return 1;
 }

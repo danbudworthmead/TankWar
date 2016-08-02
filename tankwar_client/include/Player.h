@@ -2,11 +2,10 @@
 #define __PLAYER_H_
 
 #include "Actor.h"
-
+class XboxController;
 class Player : public Actor
 {
 	int score_ = 0;
-	float rotAmount_ = 0.0001f;
 	float turretCooldown = 0.0f;
 	int ID_;
 
@@ -17,15 +16,13 @@ public:
 	Player(const UG::SColour& a_base, const UG::SColour& a_turret);
 	virtual ~Player();
 
-	void Update(const float a_fDeltaTime);
+	void Update(const float a_fDeltaTime, XboxController& a_pXboxController);
 
 	void StartDrawing();
 	void StopDrawing();
 
 	void MoveForwards(float f, const float a_fDeltaTime);
 	void MoveBackwards(float f, const float a_fDeltaTime);
-	void TurnLeft(const float f, const float a_fDeltaTime);
-	void TurnRight(const float f, const float a_fDeltaTime);
 	float GetTurretCooldown();
 	void SetTurretCooldown(float a_cooldown);
 
