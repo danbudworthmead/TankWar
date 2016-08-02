@@ -1,386 +1,237 @@
 #include "LocalGame.h"
 #include "XboxController.h"
-#include "UGFW++.h"
 #include "Player.h"
 #include "dirent.h"
-#include "GameWall.h"
-#include "LevelLoading.h"
-#include "Bullet.h"
-#include "Emitter.h"
-#include "Enumerations.h"
 #include <iostream>
-#include <string>
-#include <SFML\Audio.hpp>
-
-LocalGame* LocalGame::s_instance = nullptr;
-
-LocalGame::LocalGame()
+int LocalGame::RunLocalGame()
 {
-	//Load sounds & music
-	/*
-	countDownBeepBuffer = new sf::SoundBuffer;
-	countDownBeepBuffer->loadFromFile("./sounds/beep.wav");
-	countDownBeep = new sf::Sound;
-	countDownBeep->setBuffer(*countDownBeepBuffer);
-	countDownBeep->setVolume(20);
-	*/
-	explodeSoundBuffer = new sf::SoundBuffer;;
-	explodeSoundBuffer->loadFromFile("./sounds/explode.wav");
-	explodeSound = new sf::Sound;
-	explodeSound->setBuffer(*explodeSoundBuffer);
-	explodeSound->setVolume(20);
+	InitialiseGamepads();
+	//Start loop
+		//Start loop
+			ConnectGamepads();
+		//End loop after 5 seconds or when more than 2 controllers are connected
+		InitialisePlayers();
+		LoadRandomLevel();
+		StartDrawing();
+		//Start loop
+			UpdateGame();
+		//End loop when one player is left alive
+		StopDrawing();
+		UpdateScores();
+	//End loop when main menu is pressed
 
-	cannonSoundBuffer = new sf::SoundBuffer;;
-	cannonSoundBuffer->loadFromFile("./sounds/cannon.wav");
-	cannonSound = new sf::Sound;
-	cannonSound->setBuffer(*cannonSoundBuffer);
-	cannonSound->setVolume(20);
-
-	//sf::Music music;
-	//music.openFromFile("./sounds/music/game.ogg");
-	//music.setVolume(10);
-	//music.play();
-
-	//initialise xbox controllers
-	pXboxControllers = new XboxController*[4];
-	for (int i = 0; i < 4; ++i)
-		pXboxControllers[i] = new XboxController(i + 1);
-
-	//initialise players
-	pPlayers = new Player*[4];	
-	pPlayers[0] = new Player(UG::SColour(255, 0, 0, 255), UG::SColour(255, 0, 0, 255));
-	pPlayers[1] = new Player(UG::SColour(0, 255, 0, 255), UG::SColour(0, 255, 0, 255));
-	pPlayers[2] = new Player(UG::SColour(0, 0, 255, 255), UG::SColour(0, 0, 255, 255));
-	pPlayers[3] = new Player(UG::SColour(255, 255, 0, 255), UG::SColour(255, 255, 0, 255));
-
-	for (int i = 0; i < 4; i++)
-	{
-		pPlayers[i]->SetID(i);
-	}
+	return 1;
 }
 
-LocalGame::~LocalGame()
+int LocalGame::InitialiseGamepads()
 {
-	delete[] pXboxControllers;
-	delete[] pPlayers;
+	//Initialise the xbox controllers
+	for (unsigned int i = 0; i < MAX_PLAYERS; i++)
+	{
+		pXboxControllers[i] = new XboxController(i);
+	}
+	return 1;
 }
-
-int LocalGame::Update()
+int LocalGame::ConnectGamepads()
 {
-	float timer = 6;
-	int prevInt = 0;
-//	countDownBeep->setPitch(1.0f);
-	do
-	{
-		UG::SetFont("./fonts/invaders.fnt");
-		UG::ClearScreen();
-		timer -= UG::GetDeltaTime() * 3;
-		std::string tempString = std::to_string((int)timer);
-		UG::DrawString(tempString.c_str(), 440, 540, 10.0f, UG::SColour(255, 255, 255, 255)); // Gotta use magic numbers because 'someone' didn't make the strings draw from centre... and I cba to do the maths to find the centre
+	//See how many game pads are connected to the machine
+	numberOfConnectedGamepads = 0;
+	for (auto pController : pXboxControllers)
+		numberOfConnectedGamepads++;
+	//Just for now set it to 4
+	numberOfConnectedGamepads = 4;
+	return 1;
+}
+int LocalGame::InitialisePlayers()
+{
+	//Initialise enough players for the amount of controllers we have connected
+	for (unsigned int i = 0; i < numberOfConnectedGamepads; i++)
+		pPlayers[i] = new Player();
+	return 1;
+}
+int LocalGame::LoadRandomLevel()
+{
+	//Gets names of levels in /levels/ directory
+	std::vector<std::string> levelNames = GetLevelNames();
+	
+	//Loads a random level
+	LoadLevel(levelNames[rand() % levelNames.size()]);
 
-		std::string score = "Player 1: ";
-		score.append(std::to_string(pPlayers[0]->GetScore()));
-		UG::DrawString(score.c_str(), 20, (int)UG::GetScreenSize().y - 20 - (0 * 30), 1.0f, UG::SColour(255, 0, 0, 255));
-
-		score = "Player 2: ";
-		score.append(std::to_string(pPlayers[1]->GetScore()));
-		UG::DrawString(score.c_str(), 20, (int)UG::GetScreenSize().y - 20 - (1 * 30), 1.0f, UG::SColour(0, 255, 0, 255));
-
-		score = "Player 3: ";
-		score.append(std::to_string(pPlayers[2]->GetScore()));
-		UG::DrawString(score.c_str(), 20, (int)UG::GetScreenSize().y - 20 - (2 * 30), 1.0f, UG::SColour(0, 0, 255, 255));
-
-		score = "Player 4: ";
-		score.append(std::to_string(pPlayers[3]->GetScore()));
-		UG::DrawString(score.c_str(), 20, (int)UG::GetScreenSize().y - 20 - (3 * 30), 1.0f, UG::SColour(255, 255, 0, 255));
-		/*
-		if ((int)timer != prevInt)
-		{
-			if ((int)timer == 0)
-				countDownBeep->setPitch(1.2f);
-			countDownBeep->play();
-		}
-		prevInt = (int)timer;
-		*/
-	} while (UG::Process() && timer > 0);
-
-	//See how many controllers are connected
-	unsigned int playersAlive = 0;
-	while (UG::Process() && playersAlive < 2)
-	{
-		playersAlive = 0;
-		for (int i = 0; i < 4; i++)
-		{
-			if (pXboxControllers[i]->IsConnected())
-			{
-				pPlayers[i]->IsAlive(true);
-				playersAlive++;
-			}
-		}
-		if (playersAlive < 2)
-			UG::DrawString("Connect 2 or more controllers!", 100, 190, 2.2f);
-	}
-
-	for (int i = 0; i < 4; i++)
-	{
-		if (pPlayers[i]->IsAlive())
-			pPlayers[i]->StartDrawing();
-	}
-	char buffer256[256] = "";
-
+	//I wonder if I could make an online folder. Will experiment with this idea later.
+	return 1;
+}
+std::vector<std::string> LocalGame::GetLevelNames()
+{
 	//=====================================================
 	//Load a random level from the "levels" folder
 	//=====================================================
 	std::cout << "\n\n\tSearching levels folder...\n";
 	std::vector<std::string> levelNames;
 	DIR *dir;
-	struct dirent *ent;
+	struct dirent *entry;
 	if ((dir = opendir("./levels/")) != NULL)
 	{
 		/* print all the files and directories within directory */
-		while ((ent = readdir(dir)) != NULL)
+		while ((entry = readdir(dir)) != NULL)
 		{
-			if (ent->d_type != 16384) // no file type, for some reason "." and ".." were showing as files
+			if (entry->d_type != 16384) // no file type, for some reason "." and ".." were showing as files
 			{
-				std::cout << "\t-> " << ent->d_name << std::endl;
-				std::string tempString = ent->d_name;
-				tempString.erase(tempString.find_last_of(".")); //get rid of the .bmp
-				levelNames.push_back(tempString);
+				std::string tempString = entry->d_name;
+				//Let's make sure it's a .bmp file
+				if (tempString.substr(tempString.find_last_of("."), 3).compare(".bmp"))
+				{
+					std::cout << "\t-> " << entry->d_name << std::endl;
+					levelNames.push_back(tempString);
+				}
 			}
 		}
 		closedir(dir);
 	}
-	else perror("Couldn't find the levels folder!");
-	//std::vector<GameWall*> pGameWalls = LoadLevel("test", pPlayers);
-	std::vector<GameWall*> pGameWalls = LoadLevel(levelNames[rand() % levelNames.size()].c_str(), pPlayers);
-	for (auto pGameWall : pGameWalls) { pGameWall->StartDrawing(); }
-	//=====================================================
+	return levelNames;
+}
+int LocalGame::LoadLevel(std::string a_sLevelName)
+{
+	char cBuffer256[256];
+	memset(cBuffer256, 0, 256);
+	strcat(cBuffer256, "./levels/");
+	strcat(cBuffer256, a_sLevelName.c_str());
+	FILE* file = fopen(cBuffer256, "r");
 
-	std::vector<Bullet*> pBullets;
+	char header[54];
+	fread(header, sizeof(unsigned char), 54, file);
 
-	Emitter explosionEmitter(Maths::Vector2(UG::GetScreenSize().x * 0.75f, UG::GetScreenSize().y * 0.5f), new Particle("./images/particle.png", UG::SColour(255, 255, 0, 255), UG::SColour(255, 0, 0, 0),Maths::Vector2(10, 10),Maths::Vector2::UP,Maths::Vector2(-100, -100), 0.25f, 300.0f), "./images/particle.png", 30, 0, 2.f, 0.0f);
-	float roundEndTimer = 2.0f;
+	//Get the height and width of the image
+	Maths::Vector2 mapSize(*(int*)&header[18], *(int*)&header[22]);
 
-	//=====================================================
-	//	Main Game Loop!
-	//=====================================================
+	//Min and Max map sizes
+	Maths::Vector2 MIN_MAP_SIZE(10, 10);
+	Maths::Vector2 MAX_MAP_SIZE(24, 24);
 
-	int background = UG::CreateSprite("./images/backgrounds/floorboard.png", 1024, 768);
-
-	//int iRand = rand() % 2;
-	//switch (iRand)
-	//{
-	//case 0:
-	//	background = UG::CreateSprite("./images/backgrounds/floorboard.png", 1024, 768);
-	//	break;
-	//case 1:
-	//	background = UG::CreateSprite("./images/backgrounds/grass.png", 1024, 768);
-	//	break;
-	//default:
-	//	break;
-	//}
-
-	UG::MoveSprite(background, UG::GetScreenSize().x * 0.5f, UG::GetScreenSize().y * 0.5f);
-	UG::SetSpriteLayer(background, 0);
-	//UG::DrawSprite(background);
-
-	do
+	//Make sure the map fits our requirements
+	if (mapSize.x < MIN_MAP_SIZE.x)
+		return 0;
+	if (mapSize.x > MAX_MAP_SIZE.x)
+		return 0;
+	if (mapSize.y < MIN_MAP_SIZE.y)
+		return 0;
+	if (mapSize.y > MAX_MAP_SIZE.y)
+		return 0;
+	
+	//Struct pixel with RGB value
+	struct Pixel
 	{
-		float fDeltaTime = UG::GetDeltaTime();
-
-		explosionEmitter.Update(fDeltaTime);
-		UG::ClearScreen();
-
-		for (auto pBullet : pBullets)
+		Pixel(const int a_r, const int a_g, const int a_b)
 		{
-			for (auto pWall : pGameWalls)
-			{
-				BulletVsWall(pBullet, pWall, fDeltaTime);
-			}
+			R = a_r;
+			G = a_g;
+			B = a_b;
 		}
-
-		for (int i = 0; i < 4; ++i)
+		int R, G, B;
+		bool operator==(const Pixel other)
 		{
-			Player* pPlayer = pPlayers[i];
-			if (pPlayer->GetTurretCooldown() > 0)
-			{
-				pPlayer->SetTurretCooldown(pPlayer->GetTurretCooldown() - fDeltaTime);
-			}
-			for (auto pBullet : pBullets)
-			{
-				if (pBullet->IsAlive() && pPlayer->IsAlive())
-				{
-					/*
-					if (BoxVsBox(pBullet->GetBoxCollider(), pPlayer->GetBoxCollider())) // if  bullet hits player
-					{
-						explosionEmitter.Emit(0.5f);
-						explosionEmitter.SetPos(pPlayer->GetPos());
-
-						switch (pPlayer->GetID())
-						{
-						case 0:
-							explosionEmitter.SetParticle(Particle("./images/particle.png", UG::SColour(255, 0, 0, 255), UG::SColour(255, 0, 0, 0),Maths::Vector2(8, 8),Maths::Vector2::UP,Maths::Vector2(-100, -100), 0.25f, 300.0f));
-							break;
-						case 1:
-							explosionEmitter.SetParticle(Particle("./images/particle.png", UG::SColour(0, 255, 0, 255), UG::SColour(0, 255, 0, 0),Maths::Vector2(8, 8),Maths::Vector2::UP,Maths::Vector2(-100, -100), 0.25f, 300.0f));
-							break;
-						case 2:
-							explosionEmitter.SetParticle(Particle("./images/particle.png", UG::SColour(0, 0, 255, 255), UG::SColour(0, 0, 255, 0),Maths::Vector2(8, 8),Maths::Vector2::UP,Maths::Vector2(-100, -100), 0.25f, 300.0f));
-							break;
-						case 3:
-							explosionEmitter.SetParticle(Particle("./images/particle.png", UG::SColour(255, 255, 0, 255), UG::SColour(255, 255, 0, 0),Maths::Vector2(8, 8),Maths::Vector2::UP,Maths::Vector2(-100, -100), 0.25f, 300.0f));
-							break;
-						default:
-							break;
-						}
-
-						explodeSound->play();
-						pPlayer->IsAlive(false);
-						pBullet->IsAlive(false);
-						pPlayer->StopDrawing();
-						pBullet->StopDrawing();
-						playersAlive--;
-						if (playersAlive <= 1)
-						{
-							for (int j = 0; j < 4; ++j)
-							{
-								Player* p = pPlayers[j];
-								if (p->IsAlive())
-								{
-									p->IncrementScore();
-								}
-							}
-						}
-					}*/
-				}
-			}
+			if (other.R == R && other.G == G && other.B == B)
+				return true;
+			return false;
 		}
-
-		for (int i = 0; i < 4; i++)
-		{
-			for (auto pWall : pGameWalls)
-				//AABBvsAABB(pPlayers[i], pWall, deltaTime);
-
-			//\==============================================================================
-			//\ START Xbox Controller Input
-			//\==============================================================================
-
-			float deadzoneMagnitude = 0.5f;
-			float RT = pXboxControllers[i]->GetState().Gamepad.bRightTrigger;
-			if (RT > 16) pPlayers[i]->MoveForwards(RT, fDeltaTime);
-			float LT = pXboxControllers[i]->GetState().Gamepad.bLeftTrigger;
-			if (LT > 16) pPlayers[i]->MoveBackwards(LT, fDeltaTime);
-			Maths::Vector2 leftThumb(pXboxControllers[i]->GetState().Gamepad.sThumbLX, pXboxControllers[i]->GetState().Gamepad.sThumbLY);
-			if (leftThumb.Magnitude() > 25000)
-			{
-				if (leftThumb.x > 8192) pPlayers[i]->TurnRight(leftThumb.x, fDeltaTime);
-				if (leftThumb.x < -8192) pPlayers[i]->TurnLeft(-leftThumb.x, fDeltaTime);
-				//if (leftThumb.y > 25000)
-				//{
-				//	pPlayers[i]->MoveForwards(leftThumb.Normalise().y * 255);
-				//}
-			}
-			Maths::Vector2 rightThumb(pXboxControllers[i]->GetState().Gamepad.sThumbRX, pXboxControllers[i]->GetState().Gamepad.sThumbRY);
-			if (rightThumb.Magnitude() > 30000)
-			{
-				rightThumb = rightThumb.GetNormalised();
-				pPlayers[i]->turret_->SetDir(-Maths::Vector2(rightThumb).Bearing());
-			}
-			if (pXboxControllers[i]->GetState().Gamepad.wButtons == XINPUT_GAMEPAD_RIGHT_SHOULDER && pPlayers[i]->GetTurretCooldown() <= 0 && pPlayers[i]->IsAlive())
-			{
-				pBullets = FireBullet(pPlayers[i]->GetPos() + (pPlayers[i]->turret_->GetDir() * 48), pPlayers[i]->turret_->GetDir(), pBullets);
-				pPlayers[i]->SetTurretCooldown(0.5f);
-				cannonSound->play();
-			}
-			//\==============================================================================
-			//\ END Xbox Controller Input
-			//\==============================================================================
-
-			pPlayers[i]->Update(fDeltaTime);
-
-		}
-		for (int i = 0; i < pBullets.size(); ++i)
-		{
-			int index = pBullets[i]->Update(pBullets, fDeltaTime);
-			if (index > 0)
-			{
-				pBullets.erase(pBullets.begin() + index);
-			}
-		}
-		if (playersAlive <= 1)
-		{
-			roundEndTimer -= fDeltaTime;
-		}
-	} while (UG::Process() && roundEndTimer >= 0 && !UG::IsKeyDown(UG::KEY_F5));
-	//Stop drawing everything
-	for (auto pGameWall : pGameWalls) { pGameWall->StopDrawing(); delete pGameWall; }
-	for (auto pBullet : pBullets) { pBullet->StopDrawing(); delete pBullet; }
-	for (int i = 0; i < 4; ++i)
+	};
+	//Array of pixels
+	std::vector<Pixel> pixels;
+	int pixelCount = mapSize.x * mapSize.y;
+	for (int i = 0; i < pixelCount; i++)
 	{
-		Player* pPlayer = pPlayers[i];
-		pPlayer->SetPos(Maths::Vector2(-100, -100));
-		pPlayer->SetDir(Maths::Vector2::UP);
-		pPlayer->turret_->SetDir(Maths::Vector2::UP);
-		pPlayer->StopDrawing();
+		//make new pixel and set RGB values
+		Pixel pixel(getc(file), getc(file), getc(file));
+		//add new pixel to array
+		pixels.push_back(pixel);
 	}
-	UG::StopDrawingSprite(background);
-	UG::DestroySprite(background);
-	//for (int i = 0; i < pGameWalls.size() - 1; ++i)
-	//{
-	//	UG::DestroySprite(pGameWalls[i]->GetSprite());
-	//}
+
+	//255, 255, 255 will be empty space
+	Pixel pixel_white(255, 255, 255);
+	//0, 0, 0 will be a wall
+	Pixel pixel_black(0, 0, 0);
+	//0, 255, 0 will be player spawn
+	Pixel pixel_green(0, 255, 0);
+	//0, 255, 255 will be power ups
+	Pixel pixel_yellow(0, 255, 255);
+
+	//each tile will be the screen size divided by the map size
+	Maths::Vector2 tileSize = UG::GetScreenSize() / mapSize;
+	Maths::Vector2 currentPixel(1, 1);
+	for (unsigned int i = 0; i < pixelCount; i++)
+	{
+		if (pixels[i] == pixel_black)
+		{
+			//add wall to gameTiles
+			gameTiles.push_back(new Actor("./images/wall.png", tileSize, (currentPixel * tileSize) - tileSize * 0.5f, UG::SColour(255, 255, 255, 255), true));
+		}
+		else if (pixels[i] == pixel_white)
+		{
+			//do nothing because empty
+		}
+		else if (pixels[i] == pixel_green)
+		{
+			//gameTiles.pushback(new PlayerSpawn(currentPixel));
+			possiblePlayerSpawns.push_back(Maths::Vector2(currentPixel * tileSize));
+		}
+		else if (pixels[i] == pixel_yellow)
+		{
+			//gameTiles.pushback(new PowerupSpawn(currentPixel));
+		}
+		currentPixel.x++;
+		if (currentPixel.x > mapSize.x)
+		{
+			currentPixel.x = 1;
+			currentPixel.y++;
+		}
+	}
+	//find 2D in 1D -> width * (y - 1) + x
+	fclose(file); //close the file
+
+	for (unsigned int i = 0; i < numberOfConnectedGamepads; i++)
+	{
+		int randSpawn = rand() % possiblePlayerSpawns.size();
+		pPlayers[i]->SetPos(possiblePlayerSpawns[randSpawn]);
+		possiblePlayerSpawns.erase(possiblePlayerSpawns.begin() + randSpawn);
+	}
+
 	return 1;
 }
-
-void LocalGame::BulletVsWall(Bullet * bullet, GameWall * wall, const float a_fDeltaTime)
+int LocalGame::StartDrawing()
 {
-	if (bullet->IsAlive() && wall->IsAlive())
-	{
-		int iClosest = -1;
-		/*
-		if (BoxVsBox(bullet->GetBoxCollider(), wall->GetBoxCollider()))
-		{
-			float distNearestWall = (float)ULLONG_MAX;
+	for (auto gameTile : gameTiles)
+		gameTile->StartDrawing();
+	for (unsigned int i = 0; i < numberOfConnectedGamepads; i++)
+		pPlayers[i]->StartDrawing();
 
-			for (int i = 0; i < 4; i++)
-			{
-				float distToWall = Maths::DistanceToWall(bullet->GetBoxCollider()->GetWall(i), wall->GetPos());
-				if (distToWall < distNearestWall)
-				{
-					distNearestWall = distToWall;
-					iClosest = i;
-				}
-			}
-			//translating the player by the closest walls normal vector * half the size of the player
-			bullet->Translate(wall->GetBoxCollider()->GetWall(iClosest).GetNormal() * (distNearestWall + 32), 1); //I know this is really unoptimised
-		}
-		if (iClosest != -1)
-		{
-			Maths::Vector2 bulletDir = bullet->GetDir();
-			switch (iClosest)
-			{
-			case 0:
-				bullet->SetDir(Maths::Vector2(bulletDir.x, bulletDir.y));
-				break;
-			case 1:
-				bullet->SetDir(Maths::Vector2(-bulletDir.x, -bulletDir.y));
-				break;
-			case 2:
-				bullet->SetDir(Maths::Vector2(bulletDir.x, bulletDir.y));
-				break;
-			case 3:
-				bullet->SetDir(Maths::Vector2(-bulletDir.x, -bulletDir.y));
-				break;
-			default:
-				break;
-			}
-		}
-		*/
-	}
+	return 1;
 }
-
-std::vector<Bullet*> LocalGame::FireBullet(const Maths::Vector2& a_pos, const Maths::Vector2& a_dir, std::vector<Bullet*> a_pBullets)
+int LocalGame::UpdateGame()
 {
-	a_pBullets.push_back(new Bullet(a_pos, a_dir));
-	return a_pBullets;
+	do
+	{
+		UG::ClearScreen();
+		float fDeltaTime = UG::GetDeltaTime();
+		for (unsigned int i = 0; i < numberOfConnectedGamepads; i++)
+			pPlayers[i]->Update(fDeltaTime);
+	} while (UG::Process());
+	return 1;
+}
+int LocalGame::StopDrawing()
+{
+	return 1;
+}
+int LocalGame::UpdateScores()
+{
+	return 1;
+}
+int LocalGame::Terminate()
+{
+	//Delete xbox controllers
+	for (unsigned int i = 0; i < MAX_PLAYERS; i++)
+		delete pXboxControllers[i];
+
+	//Delete players
+	for (unsigned int i = 0; i < MAX_PLAYERS; i++)
+		delete pPlayers[i];
+	return 1;
 }

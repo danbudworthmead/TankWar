@@ -1,53 +1,41 @@
 #ifndef __LOCAL_GAME_H_
 #define __LOCAL_GAME_H_
 
+//Additional header includes
 #include <vector>
-#include "Vector2.h"
+#include "Actor.h"
 
+//Forward declaration
 class XboxController;
 class Player;
-class Bullet;
-class GameWall;
 
-namespace sf
-{
-	class SoundBuffer;
-	class Sound;
-}
-
+//Class local game
 class LocalGame
 {
-	static LocalGame* s_instance;
-	LocalGame();
-	~LocalGame();
+	const static int MAX_PLAYERS = 4;
+	XboxController* pXboxControllers[MAX_PLAYERS];
+	Player* pPlayers[MAX_PLAYERS];
+	int numberOfConnectedGamepads;
 
-	/*
-	sf::SoundBuffer* countDownBeepBuffer; 
-	sf::Sound* countDownBeep;
-	*/
+	std::vector<Actor*>gameTiles;
+	std::vector<Maths::Vector2>possiblePlayerSpawns;
 
-	sf::SoundBuffer* explodeSoundBuffer; 
-	sf::Sound* explodeSound;
-
-	sf::SoundBuffer* cannonSoundBuffer;
-	sf::Sound* cannonSound;
-
-	XboxController** pXboxControllers;
-	Player** pPlayers;
-
-	int amountOfPlayers;
-
-	void BulletVsWall(Bullet* bullet, GameWall* wall, const float a_fDeltaTime);
-	std::vector<Bullet*> FireBullet(const Maths::Vector2& a_pos, const Maths::Vector2& a_dir, std::vector<Bullet*> a_pBullets);
+	//Other Methods
+	int InitialiseGamepads();
+	int ConnectGamepads();
+	int InitialisePlayers();
+	int StartDrawing();
+	int LoadRandomLevel();
+	std::vector<std::string> GetLevelNames();
+	int LoadLevel(std::string a_sLevelName);
+	int UpdateGame();
+	int StopDrawing();
+	int UpdateScores();
+	int Terminate();
 
 public:
-	int Update();
-	static LocalGame* Instance()
-	{
-		if (!s_instance)
-			s_instance = new LocalGame();
-		return s_instance;
-	}
+	//Main Method
+	int RunLocalGame();
 };
 
 #endif //__LOCAL_GAME_H_

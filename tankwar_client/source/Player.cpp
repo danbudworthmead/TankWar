@@ -4,7 +4,7 @@ Player::Player() : Actor("./images/tank_base.png",Maths::Vector2(64, 64),Maths::
 {
 	//turret_ = new Turret();
 	turret_ = new Actor("./images/tank_base.png",Maths::Vector2(64, 64),Maths::Vector2(0, 0));
-	SetSpeed(200.0f);
+	SetSpeed(0.0f);
 }
 Player::Player(const float& other)
 {
@@ -13,7 +13,7 @@ Player::Player(const float& other)
 Player::Player(const UG::SColour& a_base, const UG::SColour& a_turret) : Actor("./images/tank_base.png",Maths::Vector2(64, 64),Maths::Vector2(-100, -100), a_base, true, 0, false)
 {
 	turret_ = new Actor("./images/tank_turret.png",Maths::Vector2(64, 64),Maths::Vector2(-100, -100), a_turret);
-	SetSpeed(200.0f);
+	SetSpeed(0.0f);
 }
 Player::~Player(){}
 
@@ -40,21 +40,21 @@ void Player::Update(const float a_fDeltaTime)
 	*/
 
 	//Move turret to my base
-	turret_->SetPos(GetPos());
-	turret_->Update(a_fDeltaTime);
+	//turret_->SetPos(GetPos());
+	//turret_->Update(a_fDeltaTime);
 
 	//UG::SetSpriteMatrix(sprite, m4_.values_);
 }
 
 void Player::StartDrawing()
 {
-	if (turret_)
-		turret_->StartDrawing();
+	//if (turret_)
+	//	turret_->StartDrawing();
 	Actor::StartDrawing();
 }
 void Player::StopDrawing()
 {
-	turret_->StopDrawing();
+	//turret_->StopDrawing();
 	Actor::StopDrawing();
 }
 

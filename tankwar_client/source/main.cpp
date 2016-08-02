@@ -20,42 +20,52 @@ int main()
 	} currentGameState = GameStates::Game_Local; //Change this to see the multiplayer version in action
 
 	Maths::Vector2 screenSize = Maths::Vector2(1024, 768);
-
 	if (UG::Create((int)screenSize.x, (int)screenSize.y, false, "Tank Wars!", 0, 0))
 	{
-		UG::AddFont("./fonts/invaders.fnt");
-
-		//Create Menu Buttons
-		MenuButton QuickStartGame = MenuButton("./images/buttons/QuickGame.png", screenSize * 0.5f, Maths::Vector2(512, 128), UG::SColour(255, 255, 255, 255));
-		MenuButton QuitGame = MenuButton("./images/buttons/Quit.png", screenSize * 0.25f, Maths::Vector2(512, 128), UG::SColour(255, 255, 255, 255));
-
-		do {
-			UG::ClearScreen();
-
-			switch (currentGameState)
-			{
-			case GameStates::Menu_System:
-				QuickStartGame.StartDrawing();
-				QuitGame.StartDrawing();
-				do
-				{
-					UG::ClearScreen();
-				} while (UG::Process() && currentGameState == GameStates::Menu_System);
-				QuickStartGame.StopDrawing();
-				QuitGame.StopDrawing();
-				break;
-			case GameStates::Game_Local:
-				LocalGame::Instance()->Update();
-				break;
-			case GameStates::Game_Networked:
-				NetworkGame::Instance()->Update();
-				break;
-			default:
-				break;
-			}
+		LocalGame localGame;
+		do
+		{
+			localGame.RunLocalGame();
 		} while (UG::Process());
 		UG::Dispose();
 	}
+
+
+	//if (UG::Create((int)screenSize.x, (int)screenSize.y, false, "Tank Wars!", 0, 0))
+	//{
+	//	UG::AddFont("./fonts/invaders.fnt");
+	//
+	//	//Create Menu Buttons
+	//	MenuButton QuickStartGame = MenuButton("./images/buttons/QuickGame.png", screenSize * 0.5f, Maths::Vector2(512, 128), UG::SColour(255, 255, 255, 255));
+	//	MenuButton QuitGame = MenuButton("./images/buttons/Quit.png", screenSize * 0.25f, Maths::Vector2(512, 128), UG::SColour(255, 255, 255, 255));
+	//
+	//	do {
+	//		UG::ClearScreen();
+	//
+	//		switch (currentGameState)
+	//		{
+	//		case GameStates::Menu_System:
+	//			QuickStartGame.StartDrawing();
+	//			QuitGame.StartDrawing();
+	//			do
+	//			{
+	//				UG::ClearScreen();
+	//			} while (UG::Process() && currentGameState == GameStates::Menu_System);
+	//			QuickStartGame.StopDrawing();
+	//			QuitGame.StopDrawing();
+	//			break;
+	//		case GameStates::Game_Local:
+	//			LocalGame::Instance()->Update();
+	//			break;
+	//		case GameStates::Game_Networked:
+	//			NetworkGame::Instance()->Update();
+	//			break;
+	//		default:
+	//			break;
+	//		}
+	//	} while (UG::Process());
+	//	UG::Dispose();
+	//}
 	return 1;
 }
 
