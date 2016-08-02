@@ -1,0 +1,9 @@
+<?xml version="1.0" ?>
+
+<appData>
+  <title>Uni of Glos Framework Test</title>
+  <windows>
+    <window title ="Uni of Glos Framework Test" width="640" height="800" xPos="20" yPos="300"/>
+  </windows>
+  
+</appData>
