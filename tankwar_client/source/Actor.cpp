@@ -2,20 +2,20 @@
 //\=================================================================================
 //\ Constructors and Destructor
 //\=================================================================================
-Actor::Actor() : AABBCollider2D() 
+Actor::Actor() : AABBCollider2D("") 
 {
 	iSprite_ = -1;
 	//StartDrawing();
 }
 
-Actor::Actor(const Actor& a_actor)
+Actor::Actor(const Actor& a_actor) : AABBCollider2D("")
 {
 	*this = a_actor;
 	//StartDrawing();
 }
 
 Actor::Actor(const char * sSpriteName, const Maths::Vector2 & a_v2Size, const Maths::Vector2 & a_v2Pos, const UG::SColour & a_colour, const bool & a_CanCollide, const float & a_bearingRadians, const bool & a_isAlive, const int iLayer)
-	: AABBCollider2D(a_v2Pos, a_v2Size, a_CanCollide)
+	: AABBCollider2D("",a_v2Pos, a_v2Size, a_CanCollide)
 {
 	iSprite_ = UG::CreateSprite(sSpriteName, a_v2Size.x, a_v2Size.y);
 	UG::MoveSprite(iSprite_, a_v2Pos.xy);

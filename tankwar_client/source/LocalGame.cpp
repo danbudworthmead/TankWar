@@ -105,17 +105,17 @@ int LocalGame::LoadLevel(std::string a_sLevelName)
 	Maths::Vector2 mapSize(*(int*)&header[18], *(int*)&header[22]);
 
 	//Min and Max map sizes
-	Maths::Vector2 MIN_MAP_SIZE(10, 10);
-	Maths::Vector2 MAX_MAP_SIZE(24, 24);
+	Maths::Vector2 MAP_SIZE_MIN(10, 10);
+	Maths::Vector2 MAP_SIZE_MAX(24, 24);
 
 	//Make sure the map fits our requirements
-	if (mapSize.x < MIN_MAP_SIZE.x)
+	if (mapSize.x < MAP_SIZE_MIN.x)
 		return 0;
-	if (mapSize.x > MAX_MAP_SIZE.x)
+	if (mapSize.x > MAP_SIZE_MAX.x)
 		return 0;
-	if (mapSize.y < MIN_MAP_SIZE.y)
+	if (mapSize.y < MAP_SIZE_MIN.y)
 		return 0;
-	if (mapSize.y > MAX_MAP_SIZE.y)
+	if (mapSize.y > MAP_SIZE_MAX.y)
 		return 0;
 	
 	//Struct pixel with RGB value
@@ -165,18 +165,17 @@ int LocalGame::LoadLevel(std::string a_sLevelName)
 			//add wall to gameTiles
 			gameTiles.push_back(new Actor("./images/wall.png", tileSize, (currentPixel * tileSize) - tileSize * 0.5f, UG::SColour(255, 255, 255, 255), true));
 		}
-		else if (pixels[i] == pixel_white)
-		{
-			//do nothing because empty
-		}
 		else if (pixels[i] == pixel_green)
 		{
-			//gameTiles.pushback(new PlayerSpawn(currentPixel));
-			possiblePlayerSpawns.push_back(Maths::Vector2(currentPixel * tileSize));
+			possiblePlayerSpawns.push_back(Maths::Vector2(currentPixel * tileSize - tileSize * 0.5f));
 		}
 		else if (pixels[i] == pixel_yellow)
 		{
 			//gameTiles.pushback(new PowerupSpawn(currentPixel));
+		}
+		else if (pixels[i] == pixel_white)
+		{
+			//do nothing because empty
 		}
 		currentPixel.x++;
 		if (currentPixel.x > mapSize.x)
