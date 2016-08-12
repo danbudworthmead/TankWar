@@ -32,6 +32,7 @@ class LocalGame
 	int StopDrawing();
 	int UpdateScores();
 	int Terminate();
+	int DrawHitboxes();
 
 public:
 	//Main Method

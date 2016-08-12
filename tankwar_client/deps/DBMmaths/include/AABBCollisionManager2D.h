@@ -10,13 +10,14 @@ namespace Maths
 		static AABBCollisionManager2D* s_instance;
 		AABBCollisionManager2D();
 		~AABBCollisionManager2D();
-
-		std::vector<AABBCollider2D*> colliders_;
-		std::vector<AABBCollider2D*> nonStaticColliders_;
 	public:
+
+		std::vector<AABBCollider2D*> colliders;
+		std::vector<AABBCollider2D*> nonStaticColliders;
+
 		static AABBCollisionManager2D* instance();
 
-		void UpdatePhysics();
+		void UpdatePhysics(const bool DEBUG_MODE = false);
 
 		int Add(AABBCollider2D& a_collider);
 		bool Remove(AABBCollider2D& a_collider);

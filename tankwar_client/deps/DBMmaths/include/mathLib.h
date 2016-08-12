@@ -18,8 +18,5 @@
 #include "Vector4.h"
 #include "Matrix3.h"
 #include "Matrix4.h"
-#include "WallCollider2D.h"
-#include "AABBCollider2D.h"
-#include "AABBCollisionManager2D.h"
 
 // TODO: reference additional headers your program requires here

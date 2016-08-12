@@ -10,7 +10,8 @@ class Player : public Actor
 	int ID_;
 
 public:
-	Actor* turret_;
+	//Actor* turret_;
+	int turret_;
 	Player();
 	Player(const float& other);
 	Player(const UG::SColour& a_base, const UG::SColour& a_turret);

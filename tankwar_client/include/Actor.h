@@ -2,7 +2,7 @@
 #define __ACTOR_H_
 #include "AABBCollider2D.h"
 #include "UGFW++.h"
-class Actor : Maths::AABBCollider2D
+class Actor : public Maths::AABBCollider2D
 {
 	bool bIsAlive_;
 	int iSprite_ = -1;
@@ -14,7 +14,7 @@ public:
 	Maths::Matrix4 m4Sprite_;
 	Actor();
 	Actor(const Actor& a_actor);
-	Actor(const char* sSpriteName, const Maths::Vector2& a_v2Size, const Maths::Vector2& a_v2Pos, const UG::SColour& a_colour = UG::SColour(255, 255, 255, 255), const bool& a_CanCollide = false, const float& a_bearingRadians = 0.0f, const bool& a_isAlive = true, const int iLayer=0);
+	Actor(const char* a_actorName, const char* sSpriteName, const Maths::Vector2& a_v2Size, const Maths::Vector2& a_v2Pos, const bool & a_isStatic, const UG::SColour& a_colour = UG::SColour(255, 255, 255, 255), const float& a_bearingRadians = 0.0f, const bool& a_isAlive = true, const int iLayer=0);
 	virtual ~Actor();
 
 	virtual void Update(const float a_fDeltaTime);

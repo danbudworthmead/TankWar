@@ -17,6 +17,8 @@ namespace Maths
 		void UpdateNormal();
 		Vector2 GetNormal() const;
 
+		Vector2 GetStart() const;
+		Vector2 GetEnd() const;
 
 		friend float DistanceToWall(const WallCollider2D& wall, const Vector2& v2);
 	};

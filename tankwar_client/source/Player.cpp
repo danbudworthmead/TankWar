@@ -2,10 +2,11 @@
 #include "Enumerations.h"
 #include "XboxController.h"
 #include <iostream>
-Player::Player() : Actor("./images/tank_base.png",Maths::Vector2(64, 64),Maths::Vector2(0, 0), UG::SColour(255, 255, 255, 255), true, 0, true)
+Player::Player() : Actor("Player","./images/tank_base.png", Maths::Vector2(64, 64), Maths::Vector2(0, 0), false)
 {
 	//turret_ = new Turret();
-	turret_ = new Actor("./images/tank_turret.png", Maths::Vector2(64, 64),Maths::Vector2(0, 0));
+	//turret_ = new Actor("Turret", "./images/tank_turret.png", Maths::Vector2(64, 64),Maths::Vector2(0, 0));
+	turret_ = UG::CreateSprite("./images/tank_turret.png", 0, 0, true);
 	//turret_->StartDrawing();
 	SetSpeed(200.0f);
 }
@@ -13,9 +14,10 @@ Player::Player(const float& other)
 {
 	*this = other;
 }
-Player::Player(const UG::SColour& a_base, const UG::SColour& a_turret) : Actor("./images/tank_base.png",Maths::Vector2(64, 64),Maths::Vector2(-100, -100), a_base, true, 0, false)
+Player::Player(const UG::SColour& a_base, const UG::SColour& a_turret) : Actor("Player", "./images/tank_base.png",Maths::Vector2(64, 64),Maths::Vector2(-100, -100), false, a_base)
 {
-	turret_ = new Actor("./images/tank_turret.png", Maths::Vector2(64, 64),Maths::Vector2(-100, -100), a_turret);
+	//turret_ = new Actor("Turret", "./images/tank_turret.png", Maths::Vector2(64, 64),Maths::Vector2(-100, -100), a_turret);.
+	turret_ = UG::CreateSprite("./images/tank_turret.png", 0, 0, true);
 	//turret_->StartDrawing();
 	SetSpeed(200.0f);
 }
@@ -25,29 +27,34 @@ void Player::Update(const float a_fDeltaTime, XboxController& a_pXboxController)
 {
 	XINPUT_GAMEPAD gamepad = a_pXboxController.GetState().Gamepad;
 
-	float RT = gamepad.bRightTrigger / 255.0f;
-	m4Sprite_.MoveForwards(GetSpeed() * RT * a_fDeltaTime);
+	Maths::Vector4 v4Fwd = m4Sprite_.GetY();
 
+	float RT = gamepad.bRightTrigger / 255.0f;
+	SetPos(GetPos() + Maths::Vector2(v4Fwd.x, v4Fwd.y) * a_fDeltaTime * RT * 100.f);
+	
 	float LT = gamepad.bLeftTrigger / 255.0f;
-	m4Sprite_.MoveBackwards(GetSpeed() * LT * a_fDeltaTime);
+	SetPos(GetPos() - Maths::Vector2(v4Fwd.x, v4Fwd.y) * a_fDeltaTime * LT * 100.f);
 
 	Maths::Vector2 LThumb(gamepad.sThumbLX, gamepad.sThumbLY);
 	if (LThumb.Magnitude() > 30000)
 	{
-		m4Sprite_.RotateAboutZ(rotAmount_ * LThumb.x * a_fDeltaTime);
-		turret_->m4Sprite_.RotateAboutZ(rotAmount_ * LThumb.x * a_fDeltaTime);
+		float f = rotAmount_ * LThumb.x * a_fDeltaTime;
+		m4Sprite_.RotateAboutZ(f);
+		UG::RotateSprite(turret_, -f * (180/Maths::PI));
 	}
-
+	
 	Maths::Vector2 RThumb(gamepad.sThumbRX, gamepad.sThumbRY);
 	if (RThumb.Magnitude() > 30000)
 	{
-		turret_->m4Sprite_.RotateAboutZ(rotAmount_ * RThumb.x * a_fDeltaTime);
+		UG::RotateSprite(turret_, -rotAmount_ * RThumb.x * a_fDeltaTime * (180 / Maths::PI));
 	}
 	Actor::Update(a_fDeltaTime);
 
+	//Move base to collider2D
+	m4Sprite_.SetPosition2D(AABBCollider2D::GetPos());
+
 	//Move turret to my base
-	turret_->SetPos(m4Sprite_.GetPosition2D());
-	turret_->Update(a_fDeltaTime);
+	UG::MoveSprite(turret_, m4Sprite_.GetPosition2D().x, m4Sprite_.GetPosition2D().y);
 
 	/*
 	//\=================================================================================
@@ -66,19 +73,19 @@ void Player::Update(const float a_fDeltaTime, XboxController& a_pXboxController)
 	//Rotating the turret to face the mouse
 	turret_->SetDir(UG::GetMousePos() - GetPos());
 	*/
-
-	//UG::SetSpriteMatrix(sprite, m4_.values_);
 }
 
 void Player::StartDrawing()
 {
-	if (turret_)
-		turret_->StartDrawing();
+	//if (turret_)
+	//	turret_->StartDrawing();
+	UG::DrawSprite(turret_);
 	Actor::StartDrawing();
 }
 void Player::StopDrawing()
 {
-	turret_->StopDrawing();
+	//turret_->StopDrawing();
+	UG::StopDrawingSprite(turret_);
 	Actor::StopDrawing();
 }
 

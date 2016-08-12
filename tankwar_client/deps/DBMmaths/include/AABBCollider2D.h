@@ -4,10 +4,12 @@
 #include "mathLib.h"
 namespace Maths
 {
-	class Vector2;
 	class WallCollider2D;
 	class DLLEXPORT AABBCollider2D
 	{
+		Vector2 pos_;
+		Vector2 size_;
+		Vector2 halfSize_;
 		union
 		{
 			struct
@@ -22,9 +24,6 @@ namespace Maths
 				WallCollider2D* walls_[4];
 			};
 		};
-		Vector2* pos_;
-		Vector2* size_;
-		Vector2* halfSize_;
 		bool isStatic_;
 
 		const char* name_;
@@ -50,8 +49,12 @@ namespace Maths
 		void SetPos(Vector2& a_v2Pos);
 		Vector2 GetPos()const;
 
+		void UpdateWalls();
+
 		const char* GetName()const;
 		void SetName(const char* a_name);
+
+		void GetCorners2D(float a_values[8]);
 	};
 }
 #endif //__AABB_COLLIDER_2D_H_

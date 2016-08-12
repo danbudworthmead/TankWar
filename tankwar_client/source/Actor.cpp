@@ -14,8 +14,8 @@ Actor::Actor(const Actor& a_actor) : AABBCollider2D("")
 	//StartDrawing();
 }
 
-Actor::Actor(const char * sSpriteName, const Maths::Vector2 & a_v2Size, const Maths::Vector2 & a_v2Pos, const UG::SColour & a_colour, const bool & a_CanCollide, const float & a_bearingRadians, const bool & a_isAlive, const int iLayer)
-	: AABBCollider2D("",a_v2Pos, a_v2Size, a_CanCollide)
+Actor::Actor(const char* a_actorName, const char * sSpriteName, const Maths::Vector2 & a_v2Size, const Maths::Vector2 & a_v2Pos, const bool & a_isStatic, const UG::SColour & a_colour, const float & a_bearingRadians, const bool & a_isAlive, const int iLayer)
+	: AABBCollider2D(a_actorName, a_v2Pos, a_v2Size, a_isStatic)
 {
 	iSprite_ = UG::CreateSprite(sSpriteName, a_v2Size.x, a_v2Size.y);
 	UG::MoveSprite(iSprite_, a_v2Pos.xy);
@@ -31,11 +31,7 @@ Actor::~Actor()
 
 void Actor::Update(const float a_fDeltaTime)
 {
-	//Maths::Vector2 pos = Maths::Vector2(m4Sprite_.values_[8], m4Sprite_.values_[9]);
-	//pos *= v2Velocity_ * a_fDeltaTime;
-	//m4Sprite_.SetT(Maths::Vector3(pos.x, pos.y, 0));
 	UG::SetSpriteMatrix(iSprite_, m4Sprite_.values_);
-	Maths::AABBCollider2D::SetPos(Maths::Vector2(m4Sprite_.values_[8], m4Sprite_.values_[9]));
 }
 
 void Actor::StartDrawing()
@@ -60,7 +56,8 @@ Maths::Vector2 Actor::GetPos()
 
 void Actor::SetPos(const Maths::Vector2 & a_v2Pos)
 {
-	Maths::AABBCollider2D::SetPos(Maths::Vector2(a_v2Pos));
+	for (int i = 0; i < 1000; i++)
+		Maths::AABBCollider2D::SetPos(Maths::Vector2(a_v2Pos));
 	m4Sprite_.values_[12] = a_v2Pos.x;
 	m4Sprite_.values_[13] = a_v2Pos.y;
 }

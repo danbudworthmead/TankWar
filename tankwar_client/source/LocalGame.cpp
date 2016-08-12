@@ -2,35 +2,39 @@
 #include "XboxController.h"
 #include "Player.h"
 #include "dirent.h"
+#include "AABBCollisionManager2D.h"
 #include <iostream>
 int LocalGame::RunLocalGame()
 {
 	Maths::AABBCollisionManager2D::instance();
 	InitialiseGamepads();
-	//Start loop
-		//Start loop
-			ConnectGamepads();
-		//End loop after 5 seconds or when more than 2 controllers are connected
-		InitialisePlayers();
-		LoadRandomLevel();
-		StartDrawing();
-		//Start loop
-			UpdateGame();
-		//End loop when one player is left alive
-		StopDrawing();
-		UpdateScores();
-	//End loop when main menu is pressed
-
+	ConnectGamepads();
+	InitialisePlayers();
+	LoadRandomLevel();
+	StartDrawing();
+	UpdateGame();
+	StopDrawing();
+	UpdateScores();
 	return 1;
 }
-
+int LocalGame::UpdateGame()
+{
+	do
+	{
+		UG::ClearScreen();
+		float fDeltaTime = UG::GetDeltaTime();
+		for (unsigned int i = 0; i < numberOfConnectedGamepads; i++)
+			pPlayers[i]->Update(fDeltaTime, *pXboxControllers[i + 1]);
+		Maths::AABBCollisionManager2D::instance()->UpdatePhysics(false);
+		DrawHitboxes();
+	} while (UG::Process());
+	return 1;
+}
 int LocalGame::InitialiseGamepads()
 {
 	//Initialise the xbox controllers
 	for (unsigned int i = 0; i < MAX_PLAYERS; i++)
-	{
 		pXboxControllers[i] = new XboxController(i);
-	}
 	return 1;
 }
 int LocalGame::ConnectGamepads()
@@ -38,9 +42,10 @@ int LocalGame::ConnectGamepads()
 	//See how many game pads are connected to the machine
 	numberOfConnectedGamepads = 0;
 	for (auto pController : pXboxControllers)
-		numberOfConnectedGamepads++;
-	//Just for now set it to 4
-	numberOfConnectedGamepads = 4;
+	{
+		if (pController->IsConnected())
+			numberOfConnectedGamepads++;
+	}
 	return 1;
 }
 int LocalGame::InitialisePlayers()
@@ -163,7 +168,7 @@ int LocalGame::LoadLevel(std::string a_sLevelName)
 		if (pixels[i] == pixel_black)
 		{
 			//add wall to gameTiles
-			gameTiles.push_back(new Actor("./images/wall.png", tileSize, (currentPixel * tileSize) - tileSize * 0.5f, UG::SColour(255, 255, 255, 255), true));
+			gameTiles.push_back(new Actor("Wall", "./images/wall.png", tileSize, (currentPixel * tileSize) - tileSize * 0.5f, true));
 		}
 		else if (pixels[i] == pixel_green)
 		{
@@ -192,11 +197,13 @@ int LocalGame::LoadLevel(std::string a_sLevelName)
 		int randSpawn = rand() % possiblePlayerSpawns.size();
 		pPlayers[i]->SetPos(possiblePlayerSpawns[randSpawn]);
 		possiblePlayerSpawns.erase(possiblePlayerSpawns.begin() + randSpawn);
-		pPlayers[i]->SetSize(tileSize);
-		pPlayers[i]->turret_->SetSize(tileSize * 1.4f);
+
+		Maths::Vector2 playerSize = tileSize * 0.7f;
+
+		pPlayers[i]->SetSize(playerSize);
+		UG::SetSpriteScale(pPlayers[i]->turret_, playerSize.x, playerSize.y * 1.35f);
 		pPlayers[i]->SetSpeed(tileSize.Magnitude() * 2.4f);
 	}
-
 	return 1;
 }
 int LocalGame::StartDrawing()
@@ -205,20 +212,6 @@ int LocalGame::StartDrawing()
 		gameTile->StartDrawing();
 	for (unsigned int i = 0; i < numberOfConnectedGamepads; i++)
 		pPlayers[i]->StartDrawing();
-
-	return 1;
-}
-int LocalGame::UpdateGame()
-{
-	do
-	{
-		UG::ClearScreen();
-		float fDeltaTime = UG::GetDeltaTime();
-		for (unsigned int i = 0; i < numberOfConnectedGamepads; i++)
-			pPlayers[i]->Update(fDeltaTime, *pXboxControllers[i]);
-
-		Maths::AABBCollisionManager2D::instance()->UpdatePhysics();
-	} while (UG::Process());
 	return 1;
 }
 int LocalGame::StopDrawing()
@@ -239,4 +232,20 @@ int LocalGame::Terminate()
 	for (unsigned int i = 0; i < MAX_PLAYERS; i++)
 		delete pPlayers[i];
 	return 1;
+}
+
+int LocalGame::DrawHitboxes()
+{
+	//Draws hitboxes
+	for (auto pCollider : Maths::AABBCollisionManager2D::instance()->colliders)
+	{
+		float corners[8];
+		pCollider->GetCorners2D(corners);
+
+		UG::DrawLine(corners[0], corners[1], corners[2], corners[3], UG::SColour(255, 0, 0, 255));
+		UG::DrawLine(corners[2], corners[3], corners[4], corners[5], UG::SColour(255, 0, 0, 255));
+		UG::DrawLine(corners[4], corners[5], corners[6], corners[7], UG::SColour(255, 0, 0, 255));
+		UG::DrawLine(corners[6], corners[7], corners[0], corners[1], UG::SColour(255, 0, 0, 255));
+	}
+	return 0;
 }

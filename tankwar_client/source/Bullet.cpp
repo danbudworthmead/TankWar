@@ -1,5 +1,5 @@
 #include "Bullet.h"
-Bullet::Bullet(const Maths::Vector2& a_pos, const Maths::Vector2& a_dir) : Actor("./images/bullet.png",Maths::Vector2(8, 8), a_pos, UG::SColour(255, 255, 255, 255), true)
+Bullet::Bullet(const Maths::Vector2& a_pos, const Maths::Vector2& a_dir) : Actor("Bullet","./images/bullet.png",Maths::Vector2(8, 8), a_pos, false)
 {
 	Maths::Matrix4 rot = Maths::CreateRotationMatrix4AboutZ(-a_dir.Bearing());
 	rot.SetT(m4Sprite_.GetT());
