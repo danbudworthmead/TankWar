@@ -18,6 +18,7 @@ public:
 	virtual ~Player();
 
 	void Update(const float a_fDeltaTime, XboxController& a_pXboxController);
+	void UpdateSprite();
 
 	void StartDrawing();
 	void StopDrawing();

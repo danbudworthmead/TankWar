@@ -29,7 +29,7 @@ Actor::~Actor()
 {
 }
 
-void Actor::Update(const float a_fDeltaTime)
+void Actor::Update()
 {
 	UG::SetSpriteMatrix(iSprite_, m4Sprite_.values_);
 }
@@ -56,8 +56,7 @@ Maths::Vector2 Actor::GetPos()
 
 void Actor::SetPos(const Maths::Vector2 & a_v2Pos)
 {
-	for (int i = 0; i < 1000; i++)
-		Maths::AABBCollider2D::SetPos(Maths::Vector2(a_v2Pos));
+	Maths::AABBCollider2D::SetPos(Maths::Vector2(a_v2Pos));
 	m4Sprite_.values_[12] = a_v2Pos.x;
 	m4Sprite_.values_[13] = a_v2Pos.y;
 }

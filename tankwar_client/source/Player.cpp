@@ -48,13 +48,6 @@ void Player::Update(const float a_fDeltaTime, XboxController& a_pXboxController)
 	{
 		UG::RotateSprite(turret_, -rotAmount_ * RThumb.x * a_fDeltaTime * (180 / Maths::PI));
 	}
-	Actor::Update(a_fDeltaTime);
-
-	//Move base to collider2D
-	m4Sprite_.SetPosition2D(AABBCollider2D::GetPos());
-
-	//Move turret to my base
-	UG::MoveSprite(turret_, m4Sprite_.GetPosition2D().x, m4Sprite_.GetPosition2D().y);
 
 	/*
 	//\=================================================================================
@@ -73,6 +66,17 @@ void Player::Update(const float a_fDeltaTime, XboxController& a_pXboxController)
 	//Rotating the turret to face the mouse
 	turret_->SetDir(UG::GetMousePos() - GetPos());
 	*/
+}
+
+void Player::UpdateSprite()
+{
+	//Move base to collider2D
+	m4Sprite_.SetPosition2D(AABBCollider2D::GetPos());
+
+	//Move turret to my base
+	UG::MoveSprite(turret_, m4Sprite_.GetPosition2D().x, m4Sprite_.GetPosition2D().y);
+
+	Actor::Update();
 }
 
 void Player::StartDrawing()

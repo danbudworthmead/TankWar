@@ -30,7 +30,7 @@ int Bullet::Update(std::vector<Bullet*> a_bullets, const float a_fDeltaTime)
 			aliveTimer_ -= UG::GetDeltaTime();
 			Maths::Vector4 v4 = m4Sprite_.GetY();
 			m4Sprite_.Translate(Maths::Vector2(v4.x, v4.y) * GetSpeed() * a_fDeltaTime);
-			Actor::Update(a_fDeltaTime);
+			Actor::Update();
 		}
 	}
 	return -1;

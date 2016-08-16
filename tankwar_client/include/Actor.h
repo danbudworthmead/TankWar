@@ -17,7 +17,7 @@ public:
 	Actor(const char* a_actorName, const char* sSpriteName, const Maths::Vector2& a_v2Size, const Maths::Vector2& a_v2Pos, const bool & a_isStatic, const UG::SColour& a_colour = UG::SColour(255, 255, 255, 255), const float& a_bearingRadians = 0.0f, const bool& a_isAlive = true, const int iLayer=0);
 	virtual ~Actor();
 
-	virtual void Update(const float a_fDeltaTime);
+	virtual void Update();
 	virtual void StartDrawing();
 	virtual void StopDrawing();
 

@@ -25,7 +25,10 @@ int LocalGame::UpdateGame()
 		float fDeltaTime = UG::GetDeltaTime();
 		for (unsigned int i = 0; i < numberOfConnectedGamepads; i++)
 			pPlayers[i]->Update(fDeltaTime, *pXboxControllers[i + 1]);
-		Maths::AABBCollisionManager2D::instance()->UpdatePhysics(false);
+		for (int i = 0; i < 10000; i++)
+			Maths::AABBCollisionManager2D::instance()->UpdatePhysics(false);
+		for (unsigned int i = 0; i < numberOfConnectedGamepads; i++)
+			pPlayers[i]->UpdateSprite();
 		DrawHitboxes();
 	} while (UG::Process());
 	return 1;
